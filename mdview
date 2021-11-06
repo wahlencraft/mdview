@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+# What converter and browser should be used? Multiple programs can be specified
+# separated by space. The first existing one will be used.
+html_converters="mdconv"
+browsers="surf firefox"
+
+# Fallback applications in case converting to html and opening in a browser 
+# doesn't work:
+fallback_applications="bat batcat cat"
+
+# Convert to html
+buffer=""
+for converter in $html_converters ; do
+    if command -v $converter &> /dev/null ; then
+        echo Using converter $converter
+        case "$converter" in
+            # Converters might be called differently
+            # Let those be a case in this switch statement
+            mdconv)
+                buffer=$(basename $1 .md).html
+                mdconv -o $buffer $1
+                break
+                ;;
+            *)
+                ;;
+        esac
+    else
+        echo Converter $converter not found
+    fi
+done
+
+# Open html in browser
+if ! [ buffer == "" ] ; then
+    for browser in $browsers ; do
+        if command -v $browser &> /dev/null ; then
+            echo Found browser $browser
+            $browser $buffer
+            exit 0
+        else
+            echo Could not find browser $browser
+        fi
+    done
+    echo None of the listed browsers could be found, using fallback application
+else
+    echo Failed to convert to html, using fallback application
+fi
+
+# Fallback applications
+for application in $fallback_applications; do
+    # Try applications in order given by the list
+    if command -v $application &> /dev/null ; then
+        echo Using application $application
+        $application $1
+        exit 0
+    else
+        echo Could not find application $application
+    fi
+done
+
+echo None of the fallback applications could be found. Exiting...
+exit 1
