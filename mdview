@@ -18,7 +18,7 @@ for converter in $html_converters ; do
             # Converters might be called differently
             # Let those be a case in this switch statement
             mdconv)
-                buffer=$(basename $1 .md).html
+                buffer=/tmp/$(basename $1 .md).html
                 mdconv -o $buffer $1
                 break
                 ;;
