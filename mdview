@@ -9,24 +9,55 @@ browsers="surf firefox"
 # doesn't work:
 fallback_applications="bat batcat cat"
 
+function print_help() {
+    printf "Usage: mdview <options> filename.md\n\t-v: Verbose\n\t-h: print this help message\n"
+}
+
+# Handle input
+verbose=1
+input_file=${!#}
+while getopts 'vh' flag ; do
+    case "${flag}" in
+        v)
+            verbose=0
+            ;;
+        *)
+            print_help
+            exit 1
+            ;;
+    esac
+done
+
+# Print help and exit if there is no input file
+if [ "$#" -eq 0 ] ; then
+    print_help
+    exit 1
+fi
+
+function log() {
+    if [[ $verbose -eq 0 ]] ; then
+        echo "$@"
+    fi
+}
+
 # Convert to html
 buffer=""
 for converter in $html_converters ; do
     if command -v $converter &> /dev/null ; then
-        echo Using converter $converter
+        log Using converter $converter
         case "$converter" in
             # Converters might be called differently
             # Let those be a case in this switch statement
             mdconv)
-                buffer=/tmp/$(basename $1 .md).html
-                mdconv -o $buffer $1
+                buffer=/tmp/$(basename $input_file .md).html
+                mdconv -o $buffer $input_file
                 break
                 ;;
             *)
                 ;;
         esac
     else
-        echo Converter $converter not found
+        log Converter $converter not found
     fi
 done
 
@@ -34,29 +65,29 @@ done
 if ! [ buffer == "" ] ; then
     for browser in $browsers ; do
         if command -v $browser &> /dev/null ; then
-            echo Found browser $browser
+            log Found browser $browser
             $browser $buffer
             exit 0
         else
-            echo Could not find browser $browser
+            log Could not find browser $browser
         fi
     done
-    echo None of the listed browsers could be found, using fallback application
+    log None of the listed browsers could be found, using fallback application
 else
-    echo Failed to convert to html, using fallback application
+    log Failed to convert to html, using fallback application
 fi
 
 # Fallback applications
 for application in $fallback_applications; do
     # Try applications in order given by the list
     if command -v $application &> /dev/null ; then
-        echo Using application $application
-        $application $1
+        log Using application $application
+        $application $input_file
         exit 0
     else
-        echo Could not find application $application
+        log Could not find application $application
     fi
 done
 
-echo None of the fallback applications could be found. Exiting...
+log None of the fallback applications could be found. Exiting...
 exit 1

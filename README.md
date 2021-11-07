@@ -13,3 +13,12 @@ file.
 You can easily change what program is used to convert and display the file. I
 use [mdconv](https://github.com/kevwan/mdconv) and
 [surf](https://surf.suckless.org/)
+
+# Usage
+```
+mdview <options> filename.md
+```
+Where options can be
+
+* `-v`: Verbose
+* `-h`: Help
